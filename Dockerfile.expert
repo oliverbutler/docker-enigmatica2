@@ -1,0 +1,34 @@
+# JRE base
+FROM openjdk:11.0-jre-slim
+
+# Environment variables
+ENV ID="3080974"
+ENV VERSION="1.82a"
+ENV MOTD="Enigmatica 2: Expert"
+ENV MAP=world
+ENV DIFFICULTY=1
+ENV MAXPLAYERS=10
+ENV PVP=true
+ENV VIEWDISTANCE=15
+
+RUN apt-get update && apt-get install -y wget unzip
+RUN addgroup --gid 1234 minecraft
+RUN adduser --disabled-password --home=/home/minecraft/enigmatica2 --uid 1234 --gid 1234 --gecos "minecraft user" minecraft
+
+RUN mkdir /tmp/enigmatica2 && cd /tmp/enigmatica2 && \
+  wget https://media.forgecdn.net/files/${ID:0:4}/${ID:4:7}/Enigmatica2ExpertServer-${VERSION}.zip && \
+  unzip Enigmatica2ExpertServer-${VERSION}.zip && \
+  rm Enigmatica2ExpertServer-${VERSION}.zip && \
+  echo "eula=true" > eula.txt && \
+  chown -R minecraft:minecraft /tmp/enigmatica2 && \
+  chmod +x /tmp/enigmatica2/ServerStartLinux.sh
+
+ADD entrypoint.sh /entrypoint.sh
+RUN chown minecraft:minecraft /entrypoint.sh
+
+WORKDIR /home/minecraft/enigmatica2
+USER minecraft
+EXPOSE 25565
+VOLUME /enigmatica2
+
+ENTRYPOINT [ "/entrypoint.sh" ]
